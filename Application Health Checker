@@ -1,29 +1,30 @@
 import requests
-import logging
 
-# Configuration
-APPLICATION_URL = 'http://example.com'  # Replace with your application's URL
-TIMEOUT = 10  # Timeout for the request in seconds
-EXPECTED_STATUS_CODE = 200  # Expected HTTP status code for a healthy application
-
-# Setup logging
-logging.basicConfig(filename='uptime_check.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-def check_uptime():
+def check_application_status(url):
     try:
-        response = requests.get(APPLICATION_URL, timeout=TIMEOUT)
+        # Send a GET request to the application URL
+        response = requests.get(url)
+        
+        # Check the HTTP status code
         status_code = response.status_code
-
-        if status_code == EXPECTED_STATUS_CODE:
-            logging.info(f'Application is UP. Status code: {status_code}')
-            print(f'Application is UP. Status code: {status_code}')
+        
+        # Define the status criteria
+        if status_code == 200:
+            return 'UP'
+        elif status_code in [400, 401, 403, 404, 500, 502, 503, 504]:
+            return 'DOWN'
         else:
-            logging.warning(f'Application might be DOWN. Status code: {status_code}')
-            print(f'Application might be DOWN. Status code: {status_code}')
+            return 'UNKNOWN STATUS'
 
-    except requests.RequestException as e:
-        logging.error(f'Application is DOWN. Error: {e}')
-        print(f'Application is DOWN. Error: {e}')
+    except requests.exceptions.RequestException as e:
+        # Handle exceptions (e.g., network errors, invalid URL)
+        print(f"Error checking application status: {e}")
+        return 'DOWN'
 
-if __name__ == "__main__":
-    check_uptime()
+if __name__ == '__main__':
+    # URL of the application to check
+    application_url = 'http://example.com'  # Replace with your application's URL
+    
+    # Check the application status
+    status = check_application_status(application_url)
+    print(f"The application status is: {status}")
