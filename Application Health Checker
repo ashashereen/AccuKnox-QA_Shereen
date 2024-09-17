@@ -1,0 +1,29 @@
+import requests
+import logging
+
+# Configuration
+APPLICATION_URL = 'http://example.com'  # Replace with your application's URL
+TIMEOUT = 10  # Timeout for the request in seconds
+EXPECTED_STATUS_CODE = 200  # Expected HTTP status code for a healthy application
+
+# Setup logging
+logging.basicConfig(filename='uptime_check.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def check_uptime():
+    try:
+        response = requests.get(APPLICATION_URL, timeout=TIMEOUT)
+        status_code = response.status_code
+
+        if status_code == EXPECTED_STATUS_CODE:
+            logging.info(f'Application is UP. Status code: {status_code}')
+            print(f'Application is UP. Status code: {status_code}')
+        else:
+            logging.warning(f'Application might be DOWN. Status code: {status_code}')
+            print(f'Application might be DOWN. Status code: {status_code}')
+
+    except requests.RequestException as e:
+        logging.error(f'Application is DOWN. Error: {e}')
+        print(f'Application is DOWN. Error: {e}')
+
+if __name__ == "__main__":
+    check_uptime()
