@@ -1,0 +1,42 @@
+import paramiko
+import os
+import logging
+
+# Configuration
+REMOTE_HOST = 'example.com'
+REMOTE_PORT = 22
+REMOTE_USER = 'username'
+REMOTE_PASSWORD = 'password'
+LOCAL_DIRECTORY = '/path/to/local/directory'
+REMOTE_DIRECTORY = '/path/to/remote/directory'
+
+# Setup logging
+logging.basicConfig(filename='backup.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def backup_to_remote():
+    try:
+        # Setup SSH and SFTP connection
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(REMOTE_HOST, port=REMOTE_PORT, username=REMOTE_USER, password=REMOTE_PASSWORD)
+        sftp = ssh.open_sftp()
+        
+        # Upload files
+        for root, dirs, files in os.walk(LOCAL_DIRECTORY):
+            remote_path = os.path.join(REMOTE_DIRECTORY, os.path.relpath(root, LOCAL_DIRECTORY))
+            sftp.mkdir(remote_path, ignore_existing=True)
+            for file in files:
+                local_file = os.path.join(root, file)
+                remote_file = os.path.join(remote_path, file)
+                sftp.put(local_file, remote_file)
+                logging.info(f'Successfully uploaded {local_file} to {remote_file}')
+        
+        # Cleanup
+        sftp.close()
+        ssh.close()
+        logging.info('Backup completed successfully.')
+    except Exception as e:
+        logging.error(f'Backup failed: {e}')
+
+if __name__ == "__main__":
+    backup_to_remote()
